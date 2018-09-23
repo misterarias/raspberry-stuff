@@ -1,0 +1,4 @@
+site_name: My Raspberry Stuff
+theme:
+    name: readthedocs
+    highlightjs: true
