@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Custom Raspbian image - My Raspberry Stuff</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Custom Raspbian image";
+    var mkdocs_page_input_path = "card_setup.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> My Raspberry Stuff</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">My Raspberry stuff</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../camera_setup/">Raspbery as a webcam server</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Custom Raspbian image</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#custom-raspbian-image">Custom Raspbian image</a></li>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../passwordless_ssh_setup/">SSH without password</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../proxy_setup/">Raspberry as a Proxy</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">My Raspberry Stuff</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Custom Raspbian image</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="custom-raspbian-image">Custom Raspbian image</h1>
+<pre><code>IMG_NAME=raspbian.img
+
+# GEt raspbian lite
+wget -O raspbian.gz https://downloads.raspberrypi.org/raspbian_lite_latest
+unzip raspbian.gz &amp;&amp; mv *-raspbian*.img $IMG_NAME
+
+# Mount it locally - using moount
+START=$(fdisk -l $IMG_NAME | grep &quot;${IMG_NAME}2&quot; | awk '{print $2}')
+sudo mkdir /mnt/raspbian
+sudo mount -o loop,offset=$(echo 512*${START} | bc) raspbian.img /mnt/raspbian
+
+# or using loop devices
+DEVICE=$(sudo losetup --find --partscan --show raspbian.img)
+
+lsblk $DEVICE
+sudo mount ${DEVICE}p2 -o rw /mnt/raspbian
+
+# Install QEMU and copy it inside
+sudo apt install -y binfmt-support qemu qemu-user-static
+sudo cp $(which qemu-arm-static) /mnt/raspbian/usr/bin/
+
+# check
+sudo chroot /mnt/raspbian bin/bash
+$ uname -a
+$ raspi-config # enable ssh
+$ echo &quot;bebepi&quot; &gt; /etc/hostname
+$ ENCRYPTED_PASS=$(wpa_passphrase &quot;SSID &quot;PASSWORD&quot;)
+$ cat &gt;&gt; /etc/wpa_supplicant/wpa_supplicant.conf &lt;&lt; EOF
+network {
+  ssid=&quot;SSID&quot;
+  psk=&quot;${ENCRYPTED_PASS}
+  ssid_scan=1
+  key_mgmt=WPA-PSK
+}
+EOF
+$ exit
+
+# after editing stuff
+sudo umount /mnt/raspbian
+sudo losetup -d ${DEVICE}
+
+# Burn the image (be careful with the of path)
+sudo umount /dev/sde1
+sudo umount /dev/sde2
+sudo dd if=$(pwd)/${IMG_NAME} of=/dev/sde status=progress bs=4M
+
+# Connect the SD to the raspberry, plug a cable, and ssh
+ssh pi@raspberrypi.local
+
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../passwordless_ssh_setup/" class="btn btn-neutral float-right" title="SSH without password">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../camera_setup/" class="btn btn-neutral" title="Raspbery as a webcam server"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../camera_setup/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../passwordless_ssh_setup/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
