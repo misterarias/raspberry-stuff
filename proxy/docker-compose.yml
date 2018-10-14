@@ -1,20 +1,37 @@
 ---
 version: '3'
+networks:
+  backend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.28.1.0/24
+
 services:
   proxy:
     image: nginx:1-alpine
-    volumes:
-      - ./nginx/proxy.conf:/etc/nginx/conf.d/proxy.conf
-    expose:
-      - 12345
     ports:
       - 12345:12345
+    volumes:
+      - ./nginx/proxy.conf:/etc/nginx/conf.d/proxy.conf
+      - ./nginx/htpasswd:/etc/nginx/.htpasswd
     depends_on:
       - tester1
       - tester2
+    networks:
+      backend: {}
+
   tester1:
     image: katacoda/docker-http-server
     hostname: paco1
+    networks:
+      backend:
+        ipv4_address: 172.28.1.10
+
   tester2:
     image: katacoda/docker-http-server
     hostname: paco2
+    networks:
+      backend:
+        ipv4_address: 172.28.1.110
