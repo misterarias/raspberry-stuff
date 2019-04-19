@@ -1,10 +1,4 @@
-# My Raspberry stuff
+Raspberry Stuff
+=============
 
-Collection of Raspberry recipes
-
-## Contents
-
-* [Card setup](/card_setup)
-* [Camera setup](/camera_setup)
-* [Proxy setup](/proxy_setup)
-* [Passwordless ssh](/passwordless_ssh_setup)
+Collection of useful raspberry recipes
