@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <title>Hola</title>
+  </head>
+  <body>
+    <h1>Configurador de contraseña WIFI</h1>
+    <h2>{{ hostname }} ({{ ip }})</h2>
+    <form method="post" action="/changeme">
+        <label for="ssid">SSID</label><input type="text" name="ssid" value="{{ssid}}">
+        <label for="pasword">Password</label>
+        <input type="password" name="password" value="{{password}}">
+        <br />
+        <input type="submit" value="Submit!" />
+    </form>
+  </body>
+</html>
